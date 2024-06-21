@@ -1,0 +1,176 @@
+import React, { Component } from "react";
+import axios from "axios";
+// import VideoList from "./video-list";
+// import VideoDetail from "./video-details";
+
+class SearchBar extends Component {
+  state = {
+    serachTerm: "",
+    data: {},
+    videoId: "",
+    title: "",
+    description: "",
+  };
+
+  // constructor() {
+  //   super();
+  //   console.log("Ami ekta Constructor");
+  // }
+
+  // These two handleChange function has same meaning
+  // handleChange = (event) => {
+  //   // const value = event.target.value;
+  //   // const newstate = { serachTerm: value, data: this.state.data,title:this.state.title,description:this.state.description};
+  //   // const newstate = { ...this.state, serachTerm: value}; // { ...this.state} ->object Destructuring
+  //   // const newstate = { ...this.state, serachTerm: event.target.value}; // { ...this.state} ->object Destructuring
+
+  //    this.setState(newState);
+  //   this.setState( { ...this.state, serachTerm: event.target.value});
+  // };
+
+  // These two handleChange function has same meaning
+
+  // handleChange = event => this.setState( { ...this.state, serachTerm: event.target.value});
+  // handleChange = ({target}) => this.setState( { ...this.state, serachTerm: target.value});// ( {target} )-> object destructuring
+  // handleChange = ({target : {value} }) => this.setState( { ...this.state, serachTerm: value});// ({target : {value} })->target destructuring
+
+  // handleChange = ({ target: { value: serachTerm } }) =>
+  //   this.setState({ ...this.state, serachTerm: serachTerm }); // rename the value into searchTerm
+
+  handleChange = ({ target: { value: serachTerm } }) => this.setState({ ...this.state, serachTerm }); // ( {target} )-> object destructuring
+
+// =======>>>> handleSelect
+  // handleSelect = ( videoId, title, description) => {
+  //   // console.log("eikhane asbe");
+  //   // const newstate = {serachTerm: this.state.serachTerm,data: this.state.data,videoId: videoId,title: title,description: description};
+
+  //   // const newstate = { ...this.state, videoId: videoId, title: title, description: description }; // { ...this.state} ->object Destructuring
+  //   // const newstate = { ...this.state, videoId: videoId, title: title, description: description };
+  //   // this.setState(newstate);
+
+    
+  //   const newstate = ;
+  //   this.setState(newstate);
+  // };
+
+  handleSelect = ( videoId, title, description) => { this.setState({ ...this.state, videoId, title, description } );
+    // this.setState({ ...this.state, videoId: videoId, title: title, description: description });
+  };
+
+  // componentDidMount = () => {
+  //   console.log("ami ekta component Did Mount");
+  // };
+
+  componentDidUpdate = (prevProps, prevState) => {
+    // console.log("Ami hoilam component Did Update ");
+
+    const getYoutubeVideos = () => {
+      const url = "https://www.googleapis.com/youtube/v3/search";
+
+      const key = "AIzaSyB9X-LCbu7iIW44z3lIb0hdpp0P6w00B40";
+
+      const type = "video";
+
+      const part = "snippet";
+
+      const q = this.state.serachTerm; //// Trim whitespace from search term
+
+      const targetUrl = `${url}?key=${key}&type=${type}&part=${part}&q=${q}`;
+
+      const Promise = axios.get(targetUrl); //--> Promise
+
+      const success = (response) => {
+        // console.log("Successful");
+        console.log(response.data);
+
+        // const newstate = { serachTerm: this.state.serachTerm, data: response.data, title:this.state.title,description:this.state.description };
+        const newstate = { ...this.state, data: response.data };
+
+        this.setState(newstate);
+      };
+
+      const error = (error) => {
+        // console.log("Error");
+        console.log(error);
+      };
+
+      Promise.then(success).catch(error);
+    };
+
+    if (prevState.serachTerm !== this.state.serachTerm) getYoutubeVideos();
+    console.log(prevState);
+  };
+
+  render() {
+    const item = this.state.data.items || [];
+    return (
+      <div className="container">
+        <div style={{ margin: "20px", textAlign: "center" }}>
+          <input onChange={this.handleChange} style={{ width: "75%" }} />
+          <button onClick={this.search}> Search </button>
+          <br /> <span>{this.state.serachTerm}</span>
+        </div>
+
+        <div className="row">
+          {/* <div className="col-md-8">
+            <VideoDetail />
+          </div> */}
+
+          <div className="col-md-8">
+            <div className="embed-responsive embed-responsive-16by9">
+              <iframe
+                className="embed-responsive-item"
+                src={`https://www.youtube.com/embed/${this.state.videoId}?list=RDV1fbOsHBlZE`}
+                style={{ height: "400px", width: "100%" }}
+              />
+            </div>
+            <div
+              className="details"
+              style={{
+                marginTop: "10px",
+                padding: "10px",
+                border: "2px solid #ddd",
+                borderRadius: "5px",
+              }}
+            >
+              <h4>{this.state.title}</h4>
+              <p>{this.state.description}</p>
+            </div>
+          </div>
+
+          <div className="col-md-4">
+            <ul className="list-group col-md-4">
+              {item.map((item) => {
+                // const imgUrl = item.snippet.thumbnails.default.url;
+                const imgUrl = item.snippet.thumbnails.high.url;
+                const title = item.snippet.title;
+                const description = item.snippet.thumbnails.description;
+                const videoId = item.id.videoId;
+                return (
+                  <li
+                    onClick={(event) => {
+                      // console.log(videoId);
+                      this.handleSelect(videoId, title, description);
+                    }}
+                    className="list-group-item media videolist"
+                  >
+                    <img
+                      className="mr-3"
+                      src={imgUrl}
+                      height="202"
+                      width="360"
+                      alt="video not found"
+                    />
+                    <div className="media-body">{title}</div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
+
+export default SearchBar;
